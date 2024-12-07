@@ -1,34 +1,109 @@
+#include <assert.h>
+#include <inttypes.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/time.h>
+
+#include <gsl/gsl_linalg.h>
 
 #include <jacobi.h>
 
-int main()
+#define PRINT_INFO 0
+#define COMPARE_WITH_GSL 0
+
+double wtime()
 {
-    double** a = malloc(sizeof(double*) * 3);
-    for (size_t i = 0; i < 3; i++) {
-        a[i] = malloc(sizeof(double) * 3);
+    struct timeval t;
+    gettimeofday(&t, NULL);
+    return (double)t.tv_sec + (double)t.tv_usec * 1E-6;
+}
+
+void initialize(double* a, double* b, size_t n)
+{
+    for (int i = 0; i < n; i++) {
+        srand(i * (n + 1));
+
+        double row_sum = 0;
+        for (int j = 0; j < n; j++) {
+            a[i * n + j] = rand() % 100 + 1;
+            row_sum += a[i * n + j];
+        }
+
+        a[i * n + i] += row_sum + (rand() % 50 + 10);
+        b[i] = rand() % 100 + 1;
     }
-    a[0][0] = 3;
-    a[0][1] = 2;
-    a[0][2] = 1;
+}
 
-    a[1][0] = 1;
-    a[1][1] = 2;
-    a[1][2] = 1;
+void compare(double* a, double* b, double* x, size_t n, double eps)
+{
+    int s;
+    gsl_matrix_view gsl_a = gsl_matrix_view_array(a, n, n);
+    gsl_vector_view gsl_b = gsl_vector_view_array(b, n);
+    gsl_vector* gsl_x = gsl_vector_alloc(n);
 
-    a[2][0] = 4;
-    a[2][1] = 3;
-    a[2][2] = -2;
+    gsl_permutation* p = gsl_permutation_alloc(n);
+    gsl_linalg_LU_decomp(&gsl_a.matrix, p, &s);
+    gsl_linalg_LU_solve(&gsl_a.matrix, p, &gsl_b.vector, gsl_x);
 
-    double b[3] = {10, 8, 4};
-    double x[3] = {1, 1, 1};
-    jacobi(a, b, x, 3, 1e-6);
+#if PRINT_INFO
+    printf("GSL    X[%ld]: ", n);
+    for (int i = 0; i < n; i++)
+        printf("%f ", gsl_vector_get(gsl_x, i));
+    printf("\n");
+#endif
 
-    for (size_t i = 0; i < 3; i++) {
+    for (int i = 0; i < n; i++) {
+        if (fabs(x[i] - gsl_vector_get(gsl_x, i)) > eps) {
+            fprintf(stderr, "Invalid result: elem %d: %f %f\n", i, x[i], gsl_vector_get(gsl_x, i));
+            break;
+        }
+    }
+
+    gsl_permutation_free(p);
+    gsl_vector_free(gsl_x);
+}
+
+int main(int argc, char** argv)
+{
+    if (argc != 2) {
+        fprintf(stderr, "Usage: jacobi <n>\n");
+        return EXIT_FAILURE;
+    }
+    double total_time = -wtime();
+
+    const double eps = 1e-6;
+    const size_t n = atoll(argv[1]);
+    double* a = malloc(sizeof(*a) * n * n);
+    double* b = malloc(sizeof(*b) * n);
+    double* x = calloc(sizeof(*x), n);
+    assert(a && b && x && "not enough memory");
+
+    initialize(a, b, n);
+    if (!can_use_jacobi(a, n)) {
+        fprintf(stderr, "matrix A can't be used for Jacobi method\n");
+        return EXIT_FAILURE;
+    }
+    jacobi(a, b, x, n, eps);
+
+#if PRINT_INFO
+    printf("JACOBI X[%ld]: ", n);
+    for (size_t i = 0; i < n; i++) {
         printf("%lf ", x[i]);
     }
     printf("\n");
+#endif
 
+#if COMPARE_WITH_GSL
+    initialize(a, b, n);
+    compare(a, b, x, n, eps);
+#endif
+    total_time += wtime();
+    printf("Memory used: %" PRIu64 " MiB\n",
+           (uint64_t)(((double)n * n + 3 * n) * sizeof(double)) >> 20);
+    printf("Jacobi (serial):\n[n=%ld] time (sec): %.6lf\n", n, total_time);
+
+    free(a);
+    free(b);
+    free(x);
     return 0;
 }
