@@ -3,6 +3,11 @@ MPI_APP_NAME = jacobi_mpi
 
 LIBS = -lm -lgsl -lgslcblas
 CFLAGS = -Wall -Werror -O3 -I src/jacobi -I src/jacobi_mpi
+ifeq ($(shell uname), Darwin) 
+	LIBS += -L/opt/homebrew/lib
+	CFLAGS += -I/opt/homebrew/include
+endif
+	
 DEPSFLAGS = -MMD
 CC = gcc
 MPICC = mpicc
@@ -33,13 +38,13 @@ $(APP_PATH): $(APP_OBJECTS)
 	$(CC) $(CFLAGS) -o $@ $^ $(LIBS)
 
 $(OBJ_DIR)/%.o: %.c
-	$(CC) $(CFLAGS) $(DEPSFLAGS) -c -o $@ $< $(LIBS)
+	$(CC) $(CFLAGS) $(DEPSFLAGS) -c -o $@ $<
 
 $(MPI_APP_PATH): $(MPI_APP_OBJECTS)
 	$(MPICC) $(CFLAGS) -o $@ $^ $(LIBS)
 
 $(OBJ_DIR)/$(SRC_DIR)/$(MPI_APP_NAME)/%.o: $(SRC_DIR)/$(MPI_APP_NAME)/%.c
-	$(MPICC) $(CFLAGS) $(DEPSFLAGS) -c -o $@ $< $(LIBS)
+	$(MPICC) $(CFLAGS) $(DEPSFLAGS) -c -o $@ $<
 
 clean:
 	$(RM) -rf $(BIN_DIR) $(OBJ_DIR)
