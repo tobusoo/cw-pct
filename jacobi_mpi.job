@@ -1,0 +1,8 @@
+#!/bin/bash
+
+#SBATCH --nodes=2 --ntasks-per-node=2
+#SBATCH --job-name=jacobi_mpi
+
+cd $SLURM_SUBMIT_DIR
+
+mpiexec ./bin/jacobi_mpi 1000

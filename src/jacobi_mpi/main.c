@@ -4,7 +4,7 @@
 
 #include <jacobi_mpi.h>
 
-#define PRINT_INFO 1
+#define PRINT_INFO 0
 
 void initialize(double* a, double* b, int n, int commsize, int rank)
 {
