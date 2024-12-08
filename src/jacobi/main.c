@@ -4,12 +4,13 @@
 #include <stdlib.h>
 #include <sys/time.h>
 
+#ifdef COMPARE_WITH_GSL
 #include <gsl/gsl_linalg.h>
+#endif
 
 #include <jacobi.h>
 
 #define PRINT_INFO 1
-#define COMPARE_WITH_GSL 0
 
 double wtime()
 {
@@ -34,6 +35,7 @@ void initialize(double* a, double* b, int n)
     }
 }
 
+#ifdef COMPARE_WITH_GSL
 void compare(double* a, double* b, double* x, int n, double eps)
 {
     int s;
@@ -62,6 +64,7 @@ void compare(double* a, double* b, double* x, int n, double eps)
     gsl_permutation_free(p);
     gsl_vector_free(gsl_x);
 }
+#endif
 
 int main(int argc, char** argv)
 {

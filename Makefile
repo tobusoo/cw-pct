@@ -1,13 +1,22 @@
 APP_NAME = jacobi
 MPI_APP_NAME = jacobi_mpi
 
-LIBS = -lm -lgsl -lgslcblas
+COMPARE_WITH_GSL = 0
+
+LIBS = -lm
 CFLAGS = -Wall -Werror -O3 -I src/jacobi -I src/jacobi_mpi
+
 ifeq ($(shell uname), Darwin) 
 	LIBS += -L/opt/homebrew/lib
 	CFLAGS += -I/opt/homebrew/include
 endif
-	
+
+ifeq ($(COMPARE_WITH_GSL), 1)
+	LIBS += -lgsl -lgslcblas
+	CFLAGS += -DCOMPARE_WITH_GSL
+endif
+
+
 DEPSFLAGS = -MMD
 CC = gcc
 MPICC = mpicc
