@@ -8,7 +8,7 @@
 
 #include <jacobi.h>
 
-#define PRINT_INFO 0
+#define PRINT_INFO 1
 #define COMPARE_WITH_GSL 0
 
 double wtime()
@@ -18,7 +18,7 @@ double wtime()
     return (double)t.tv_sec + (double)t.tv_usec * 1E-6;
 }
 
-void initialize(double* a, double* b, size_t n)
+void initialize(double* a, double* b, int n)
 {
     for (int i = 0; i < n; i++) {
         srand(i * (n + 1));
@@ -34,7 +34,7 @@ void initialize(double* a, double* b, size_t n)
     }
 }
 
-void compare(double* a, double* b, double* x, size_t n, double eps)
+void compare(double* a, double* b, double* x, int n, double eps)
 {
     int s;
     gsl_matrix_view gsl_a = gsl_matrix_view_array(a, n, n);
@@ -46,7 +46,7 @@ void compare(double* a, double* b, double* x, size_t n, double eps)
     gsl_linalg_LU_solve(&gsl_a.matrix, p, &gsl_b.vector, gsl_x);
 
 #if PRINT_INFO
-    printf("GSL    X[%ld]: ", n);
+    printf("GSL    X[%d]: ", n);
     for (int i = 0; i < n; i++)
         printf("%f ", gsl_vector_get(gsl_x, i));
     printf("\n");
@@ -72,7 +72,7 @@ int main(int argc, char** argv)
     double total_time = -wtime();
 
     const double eps = 1e-6;
-    const size_t n = atoll(argv[1]);
+    const int n = atoll(argv[1]);
     double* a = malloc(sizeof(*a) * n * n);
     double* b = malloc(sizeof(*b) * n);
     double* x = calloc(sizeof(*x), n);
@@ -86,8 +86,8 @@ int main(int argc, char** argv)
     jacobi(a, b, x, n, eps);
 
 #if PRINT_INFO
-    printf("JACOBI X[%ld]: ", n);
-    for (size_t i = 0; i < n; i++) {
+    printf("JACOBI X[%d]: ", n);
+    for (int i = 0; i < n; i++) {
         printf("%lf ", x[i]);
     }
     printf("\n");
@@ -98,9 +98,7 @@ int main(int argc, char** argv)
     compare(a, b, x, n, eps);
 #endif
     total_time += wtime();
-    printf("Memory used: %" PRIu64 " MiB\n",
-           (uint64_t)(((double)n * n + 3 * n) * sizeof(double)) >> 20);
-    printf("Jacobi (serial):\n[n=%ld] time (sec): %.6lf\n", n, total_time);
+    printf("Jacobi (serial):\n[n=%d] time (sec): %.6lf\n", n, total_time);
 
     free(a);
     free(b);
