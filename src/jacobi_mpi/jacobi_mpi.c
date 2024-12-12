@@ -70,6 +70,7 @@ void jacobi_mpi(const double* a, const double* b, double* x, const int n, const 
         offset += recvcounts[i];
     }
 
+    MPI_Request reqs[2];
     while (delta > eps) {
         for (int i = 0; i < nrows; i++) {
             temp[i] = b[i];
@@ -83,8 +84,18 @@ void jacobi_mpi(const double* a, const double* b, double* x, const int n, const 
         for (int j = 1; j < nrows; j++) {
             delta_local = fmax(delta_local, fabs(temp[j] - x[j + lb]));
         }
-        MPI_Allreduce(&delta_local, &delta, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
-        MPI_Allgatherv(temp, nrows, MPI_DOUBLE, x, recvcounts, displs, MPI_DOUBLE, MPI_COMM_WORLD);
+        MPI_Iallreduce(&delta_local, &delta, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD, &reqs[0]);
+        MPI_Iallgatherv(
+                temp,
+                nrows,
+                MPI_DOUBLE,
+                x,
+                recvcounts,
+                displs,
+                MPI_DOUBLE,
+                MPI_COMM_WORLD,
+                &reqs[1]);
+        MPI_Waitall(2, reqs, MPI_STATUS_IGNORE);
     }
 
     free(recvcounts);

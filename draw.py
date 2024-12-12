@@ -49,4 +49,4 @@ def draw(filenames, labels, filename: str):
 
 
 if __name__ == "__main__":
-    draw(["results/n_2500/speedup.dat", "results/n_5000/speedup.dat"], ["n=2500", "n=5000",], 'chart.png')
+    draw(["results/n_2500/speedup.dat", "results/n_5000/speedup.dat",  "results/n_6000/speedup.dat"], ["n=2500", "n=5000", "n=6000"], 'chart.png')
