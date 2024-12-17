@@ -10,7 +10,7 @@
 
 #include <jacobi.h>
 
-#define PRINT_INFO 0
+#define PRINT_INFO 1
 
 double wtime()
 {

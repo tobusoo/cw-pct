@@ -18,10 +18,13 @@ void get_chunk(int a, int b, int commsize, int rank, int* lb, int* ub)
 
     *lb = a;
     if (rank > 0) {
-        if (rank <= commsize - r)
+        if (rank <= commsize - r) {
             *lb += q * rank;
-        else
-            *lb += q * (commsize - r) + (q - 1) * (rank - (commsize - r));
+        } else {
+            int sum_of_big_chunks = q * (commsize - r);
+            int sum_of_small_chunks = (q - 1) * (rank - (commsize - r));
+            *lb += sum_of_big_chunks + sum_of_small_chunks;
+        }
     }
     *ub = *lb + chunk - 1;
 }
@@ -81,9 +84,8 @@ void jacobi_mpi(const double* a, const double* b, double* x, const int n, const 
         }
 
         delta_local = fabs(temp[0] - x[lb]);
-        for (int j = 1; j < nrows; j++) {
+        for (int j = 1; j < nrows; j++)
             delta_local = fmax(delta_local, fabs(temp[j] - x[j + lb]));
-        }
 
         MPI_Iallreduce(&delta_local, &delta, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD, &reqs[0]);
         MPI_Iallgatherv(

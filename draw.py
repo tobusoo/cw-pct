@@ -42,7 +42,7 @@ def draw(filenames, labels, filename: str):
         # ax.plot(x,y,'-o',markersize=1,c="green")
         ax.plot(x, y, marker, markersize=6, linewidth=1.5, label=datalabel)
         # x.bar(x, y);
-    ax.plot(range(2, 32), range(2, 32), '-', c="blue",
+    ax.plot(range(2, 33), range(2, 33), '-', c="blue",
             linewidth=1.5, label="Линейное ускорение")
     labels = [item.get_text() for item in ax.get_xticklabels()]
     for i in range(17):
@@ -63,4 +63,4 @@ def draw(filenames, labels, filename: str):
 
 
 if __name__ == "__main__":
-    draw(["results/n_2500/speedup.dat", "results/n_5000/speedup.dat"], ["n = 2500", "n = 5000"], 'chart.png')
+    draw(["results/n_2500/speedup.dat", "results/n_5000/speedup.dat"], ["n = 2500", "n = 5000"], 'chart.svg')

@@ -4,7 +4,7 @@
 
 #include <jacobi_mpi.h>
 
-#define PRINT_INFO 0
+#define PRINT_INFO 1
 
 void initialize(double* a, double* b, int n, int commsize, int rank)
 {
@@ -39,10 +39,8 @@ int main(int argc, char* argv[])
     int n;
     if (rank == 0) {
         n = (argc > 1) ? atoll(argv[1]) : 100;
-        MPI_Bcast(&n, 1, MPI_INT, 0, MPI_COMM_WORLD);
-    } else {
-        MPI_Bcast(&n, 1, MPI_INT, 0, MPI_COMM_WORLD);
     }
+    MPI_Bcast(&n, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
     int lb, ub;
     get_chunk(0, n - 1, commsize, rank, &lb, &ub);
